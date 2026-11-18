@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold tracking-tight">Registro de Presença</h1>
-                    <p class="text-xs text-slate-400">Portal do Aluno (Com GPS e Nuvem)</p>
+                    <p class="text-xs text-slate-400">Portal do Aluno (GPS 3km e Nuvem)</p>
                 </div>
             </div>
         </div>
@@ -87,7 +87,7 @@
 
     <!-- FOOTER -->
     <footer class="bg-slate-800/50 border-t border-slate-800 p-4 text-center text-xs text-slate-500">
-        Sistema Escolar &bull; Validação por Geolocalização e Nuvem
+        Sistema Escolar &bull; Validação por Geolocalização (3km) e Nuvem
     </footer>
 
     <!-- FIREBASE & APP LOGIC -->
@@ -122,7 +122,8 @@
             { name: "Rua Borges de Figueiredo, 510 - Mooca", lat: -23.553920, lng: -46.602810 }
         ];
 
-        const MAX_DISTANCE_METERS = 500;
+        // Raio máximo alterado para 3000 metros (3km)
+        const MAX_DISTANCE_METERS = 3000;
         let targetDate = "";
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -136,7 +137,6 @@
             if (dateParam && VALID_KEYS[dateParam]) {
                 targetDate = dateParam;
             } else {
-                // Se aberto direto sem parâmetro na URL, pega a data de hoje do relógio ou assume a primeira data ativa para teste
                 const now = new Date();
                 const dd = String(now.getDate()).padStart(2, '0');
                 const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -146,7 +146,6 @@
                 if (VALID_KEYS[todayStr]) {
                     targetDate = todayStr;
                 } else {
-                    // Padrão de teste caso o dia do relógio não seja o do evento
                     targetDate = "18/11/2026";
                 }
             }
@@ -242,7 +241,7 @@
                         }
                     } else {
                         submitBtn.disabled = false;
-                        showFeedback(`Localização negada: Você está a aprox. ${Math.round(minDistance)}m de ${nearestLocation}. O limite é 500m.`, "error");
+                        showFeedback(`Localização negada: Você está a aprox. ${(minDistance/1000).toFixed(1)}km de ${nearestLocation}. O limite permitido é de 3km.`, "error");
                     }
                 },
                 (error) => {
