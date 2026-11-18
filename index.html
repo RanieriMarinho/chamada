@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold tracking-tight">Registro de Presença</h1>
-                    <p class="text-xs text-slate-400">Portal do Aluno (Com GPS)</p>
+                    <p class="text-xs text-slate-400">Portal do Aluno (Com GPS e Nuvem)</p>
                 </div>
             </div>
         </div>
@@ -87,11 +87,27 @@
 
     <!-- FOOTER -->
     <footer class="bg-slate-800/50 border-t border-slate-800 p-4 text-center text-xs text-slate-500">
-        Sistema Escolar &bull; Validação por Geolocalização
+        Sistema Escolar &bull; Validação por Geolocalização e Nuvem
     </footer>
 
-    <!-- SCRIPT DO ALUNO COM GPS -->
-    <script>
+    <!-- FIREBASE & APP LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getFirestore, collection, add슐, getDocs, query, where } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9XViTYh4rB0YGW3sigiE7812PnVMARzY",
+            authDomain: "controlepresenca-cd715.firebaseapp.com",
+            projectId: "controlepresenca-cd715",
+            storageBucket: "controlepresenca-cd715.firebasestorage.app",
+            messagingSenderId: "374666990088",
+            appId: "1:374666990088:web:7f6a0c9fe82bdc7161f7bd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const VALID_KEYS = {
             "18/11/2026": "K9$mP2#xQ7@vL4&",
             "23/11/2026": "R4@wN8%tZ1#jB6$",
@@ -101,7 +117,6 @@
             "27/11/2026": "X8$hG2%vC7&pK3@"
         };
 
-        // ENDEREÇOS AUTORIZADOS (Latitude e Longitude)
         const AUTHORIZED_LOCATIONS = [
             { name: "Rua Augusta, 1508", lat: -23.555812, lng: -46.658245 },
             { name: "Rua Borges de Figueiredo, 510 - Mooca", lat: -23.553920, lng: -46.602810 }
@@ -141,12 +156,12 @@
             }
         }
 
-        function updateKeyCounter(input) {
+        window.updateKeyCounter = function(input) {
             const count = input.value.length;
             document.getElementById('charCount').innerText = `${count}/15`;
         }
 
-        function handleAttendanceSubmit(e) {
+        window.handleAttendanceSubmit = async function(e) {
             e.preventDefault();
             const ra = document.getElementById('inputRA').value.trim();
             const key = document.getElementById('inputKey').value.trim();
@@ -171,7 +186,6 @@
                 return;
             }
 
-            // Validar Geolocalização antes de salvar
             if (!navigator.geolocation) {
                 showFeedback("Seu navegador não suporta geolocalização.", "error");
                 return;
@@ -182,12 +196,10 @@
             submitBtn.disabled = true;
 
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    submitBtn.disabled = false;
+                async (position) => {
                     const studentLat = position.coords.latitude;
                     const studentLng = position.coords.longitude;
 
-                    // Verificar distância para os locais permitidos
                     let minDistance = Infinity;
                     let nearestLocation = "";
 
@@ -200,21 +212,46 @@
                     });
 
                     if (minDistance <= MAX_DISTANCE_METERS) {
-                        // Dentro do raio de 500m! Salvar presença.
-                        saveAttendanceRecord(targetDate, ra);
+                        try {
+                            // Verificar duplicidade no Firestore
+                            const q = query(collection(db, "presencas"), where("date", "==", targetDate), where("ra", "==", ra));
+                            const querySnapshot = await getDocs(q);
+
+                            if (!querySnapshot.empty) {
+                                submitBtn.disabled = false;
+                                showFeedback(`O RA ${ra} já possui presença registrada em ${targetDate}.`, "error");
+                                return;
+                            }
+
+                            // Salvar no Firebase Firestore
+                            await addDoc(collection(db, "presencas"), {
+                                date: targetDate,
+                                ra: ra,
+                                timestamp: new Date()
+                            });
+
+                            submitBtn.disabled = false;
+                            showFeedback(`Presença confirmada com sucesso para o RA ${ra} em ${targetDate}!`, "success");
+                            document.getElementById('attendanceForm').reset();
+                            document.getElementById('charCount').innerText = "0/15";
+                        } catch (err) {
+                            submitBtn.disabled = false;
+                            showFeedback("Erro ao salvar na nuvem. Verifique sua conexão.", "error");
+                        }
                     } else {
-                        showFeedback(`Localização negada: Você está a aproximadamente ${Math.round(minDistance)}m do local permitido mais próximo (${nearestLocation}). O limite é 500m.`, "error");
+                        submitBtn.disabled = false;
+                        showFeedback(`Localização negada: Você está a aprox. ${Math.round(minDistance)}m de ${nearestLocation}. O limite é 500m.`, "error");
                     }
                 },
                 (error) => {
                     submitBtn.disabled = false;
                     let errorMsg = "Erro ao obter localização.";
                     if (error.code === error.PERMISSION_DENIED) {
-                        errorMsg = "Permissão de GPS negada. Ative a localização nas configurações do seu celular para registrar a presença.";
+                        errorMsg = "Permissão de GPS negada. Ative a localização para registrar a presença.";
                     } else if (error.code === error.POSITION_UNAVAILABLE) {
                         errorMsg = "Informações de localização indisponíveis.";
                     } else if (error.code === error.TIMEOUT) {
-                        errorMsg = "Tempo esgotado ao buscar o sinal de GPS.";
+                        errorMsg = "Tempo esgotado ao buscar sinal de GPS.";
                     }
                     showFeedback(errorMsg, "error");
                 },
@@ -222,9 +259,8 @@
             );
         }
 
-        // Fórmula de Haversine para calcular distância em metros entre duas coordenadas GPS
         function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Raio da Terra em metros
+            const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2-lat1) * Math.PI/180;
@@ -234,25 +270,7 @@
                       Math.cos(φ1) * Math.cos(φ2) *
                       Math.sin(Δλ/2) * Math.sin(Δλ/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-            return R * c; // Distância em metros
-        }
-
-        function saveAttendanceRecord(date, ra) {
-            let records = JSON.parse(localStorage.getItem('attendance_records_nov2026') || '[]');
-            const exists = records.some(r => r.date === date && r.ra === ra);
-
-            if (exists) {
-                showFeedback(`O RA ${ra} já possui presença registrada em ${date}.`, "error");
-                return;
-            }
-
-            records.push({ date: date, ra: ra });
-            localStorage.setItem('attendance_records_nov2026', JSON.stringify(records));
-
-            showFeedback(`Presença confirmada com sucesso via GPS para o RA ${ra} em ${date}!`, "success");
-            document.getElementById('attendanceForm').reset();
-            document.getElementById('charCount').innerText = "0/15";
+            return R * c;
         }
 
         function showFeedback(msg, type) {
@@ -267,7 +285,6 @@
             setTimeout(() => { fb.classList.add('hidden'); }, 8000);
         }
 
-        // Proteções anti-inspeção
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && e.key === 'F12') || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U')) {
