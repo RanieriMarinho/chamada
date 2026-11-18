@@ -36,7 +36,7 @@
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-lg font-bold tracking-tight">Painel do Professor</h1>
-                <p class="text-xs text-slate-400">Gerenciamento e Exportação CSV</p>
+                <p class="text-xs text-slate-400">Gerenciamento de QR Codes Diários e Nuvem Firebase</p>
             </div>
             <a href="index.html" target="_blank" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition">
                 Abrir Página do Aluno ↗
@@ -46,50 +46,27 @@
 
     <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex-grow space-y-6">
         
-        <!-- SIMULATOR -->
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-            <div class="p-4 bg-indigo-950/40 border border-indigo-800/50 rounded-xl mb-6">
-                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2">Simulador de Data (Testes)</label>
-                <div class="flex flex-wrap gap-2 items-center">
-                    <select id="simulatedDateSelect" onchange="changeSimulatedDate(this.value)" class="bg-slate-900 border border-indigo-700/60 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="18/11/2026">18/11/2026 (Teste Ativo)</option>
-                        <option value="23/11/2026">23/11/2026</option>
-                        <option value="24/11/2026">24/11/2026</option>
-                        <option value="25/11/2026">25/11/2026</option>
-                        <option value="26/11/2026">26/11/2026</option>
-                        <option value="27/11/2026">27/11/2026</option>
-                    </select>
-                    <span class="text-xs text-slate-400">Data ativa: <strong id="currentActiveDateBadge" class="text-indigo-400">--/--/----</strong></span>
-                </div>
+        <!-- KEYS & QR CODES PER DAY -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white mb-1">Chaves e QR Codes por Dia do Evento</h2>
+                <p class="text-xs text-slate-400">Cada dia possui uma chave e um QR Code exclusivo para projetar na sala.</p>
             </div>
 
-            <!-- KEYS & QR CODE -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 space-y-4">
-                    <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Chaves Alfanuméricas Oficiais (15 Dígitos)</h3>
-                    <div class="space-y-2" id="keysListContainer"></div>
-                </div>
-
-                <div class="bg-slate-900/60 border border-slate-700/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-                    <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">QR Code (Apontando p/ Aluno)</h3>
-                    <div id="qrcode" class="bg-white p-3 rounded-xl shadow-md mb-3"></div>
-                    <p class="text-xs text-slate-400">Escaneie para testar o registro</p>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="dailyCardsContainer">
+                <!-- Populated dynamically -->
             </div>
 
             <!-- RECORDS & CSV -->
-            <div class="mt-8 pt-6 border-t border-slate-700 space-y-4">
+            <div class="pt-6 border-t border-slate-700 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Alunos Registrados (<span id="totalRecordsCount">0</span>)</h3>
-                        <p class="text-xs text-slate-400">Dados salvos no navegador (Data;RA)</p>
+                        <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Alunos Registrados na Nuvem (<span id="totalRecordsCount">0</span>)</h3>
+                        <p class="text-xs text-slate-400">Sincronizado em tempo real (Data;RA)</p>
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <button onclick="exportCSV()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20">
                             Exportar CSV
-                        </button>
-                        <button onclick="clearAllRecords()" class="px-3 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 text-xs font-semibold rounded-xl transition">
-                            Limpar Dados
                         </button>
                     </div>
                 </div>
@@ -103,7 +80,9 @@
                                 <th class="p-3 text-right">Ação</th>
                             </tr>
                         </thead>
-                        <tbody id="recordsTableBody" class="divide-y divide-slate-700"></tbody>
+                        <tbody id="recordsTableBody" class="divide-y divide-slate-700">
+                            <tr><td colspan="3" class="p-4 text-center text-slate-500">Carregando dados da nuvem...</td></tr>
+                        </tbody>
                     </table>
                 </div>
 
@@ -119,11 +98,26 @@
     </main>
 
     <footer class="bg-slate-800/50 border-t border-slate-800 p-4 text-center text-xs text-slate-500">
-        Painel Restrito do Professor &bull; Acesso Seguro
+        Painel Restrito do Professor &bull; Firebase Cloud
     </footer>
 
-    <!-- SCRIPT DO PROFESSOR -->
-    <script>
+    <!-- FIREBASE & PROFESSOR LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9XViTYh4rB0YGW3sigiE7812PnVMARzY",
+            authDomain: "controlepresenca-cd715.firebaseapp.com",
+            projectId: "controlepresenca-cd715",
+            storageBucket: "controlepresenca-cd715.firebasestorage.app",
+            messagingSenderId: "374666990088",
+            appId: "1:374666990088:web:7f6a0c9fe82bdc7161f7bd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const VALID_KEYS = {
             "18/11/2026": "K9$mP2#xQ7@vL4&",
             "23/11/2026": "R4@wN8%tZ1#jB6$",
@@ -133,9 +127,9 @@
             "27/11/2026": "X8$hG2%vC7&pK3@"
         };
 
-        let simulatedDateOverride = "18/11/2026";
+        let cachedRecords = [];
 
-        function verifyPin() {
+        window.verifyPin = function() {
             const pin = document.getElementById('pinInput').value;
             if (pin === "4Conteex2026") {
                 document.getElementById('pinOverlay').classList.add('hidden');
@@ -147,72 +141,95 @@
             }
         }
 
-        function handlePinKeypress(e) {
+        window.handlePinKeypress = function(e) {
             if (e.key === 'Enter') verifyPin();
         }
 
         function initDashboard() {
-            document.getElementById('currentActiveDateBadge').innerText = simulatedDateOverride;
-            renderKeysList();
-            generateQRCode();
-            loadRecordsTable();
+            renderDailyCards();
+            listenToFirebaseRecords();
         }
 
-        function changeSimulatedDate(newDate) {
-            simulatedDateOverride = newDate;
-            document.getElementById('currentActiveDateBadge').innerText = simulatedDateOverride;
-        }
-
-        function renderKeysList() {
-            const container = document.getElementById('keysListContainer');
+        function renderDailyCards() {
+            const container = document.getElementById('dailyCardsContainer');
             container.innerHTML = '';
+            const baseUrl = window.location.href.replace('professor.html', 'index.html');
+
+            let index = 0;
             for (const [date, key] of Object.entries(VALID_KEYS)) {
-                const div = document.createElement('div');
-                div.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 border border-slate-700 p-3 rounded-xl gap-2";
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="bg-indigo-500/20 text-indigo-300 font-bold text-xs px-2.5 py-1 rounded-lg">${date}</span>
-                        <code class="text-xs font-mono text-emerald-400">${key}</code>
+                const qrDivId = `qrcode-${index}`;
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-700 p-4 rounded-xl flex flex-col justify-between gap-4";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="bg-indigo-500/20 text-indigo-300 font-bold text-xs px-2.5 py-1 rounded-lg">${date}</span>
+                            <button onclick="navigator.clipboard.writeText('${key}'); alert('Chave de ${date} copiada!');" class="text-xs text-indigo-400 hover:underline">Copiar Chave</button>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Chave (15 Dígitos):</span>
+                            <code class="text-xs font-mono text-emerald-400 bg-slate-950 px-2 py-1 rounded block mt-1 select-all">${key}</code>
+                        </div>
                     </div>
-                    <button onclick="navigator.clipboard.writeText('${key}'); alert('Chave de ${date} copiada!');" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition">
-                        Copiar Chave
-                    </button>
+                    <div class="flex items-center gap-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <div id="${qrDivId}" class="bg-white p-2 rounded-lg flex-shrink-0"></div>
+                        <div class="text-xs text-slate-400 space-y-1">
+                            <p class="font-semibold text-slate-200">QR Code Oficial</p>
+                            <p>Aponta direto para o dia ${date}</p>
+                        </div>
+                    </div>
                 `;
-                container.appendChild(div);
+                container.appendChild(card);
+
+                const targetUrl = `${baseUrl}?data=${encodeURIComponent(date)}`;
+                setTimeout(() => {
+                    const el = document.getElementById(qrDivId);
+                    if (el) {
+                        el.innerHTML = '';
+                        new QRCode(el, {
+                            text: targetUrl,
+                            width: 100,
+                            height: 100,
+                            colorDark : "#0f172a",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                    }
+                }, 50);
+
+                index++;
             }
         }
 
-        function generateQRCode() {
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            const studentUrl = window.location.href.replace('professor.html', 'index.html');
-            new QRCode(qrContainer, {
-                text: studentUrl,
-                width: 140,
-                height: 140,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+        function listenToFirebaseRecords() {
+            onSnapshot(collection(db, "presencas"), (snapshot) => {
+                cachedRecords = [];
+                snapshot.forEach((docSnap) => {
+                    cachedRecords.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Ordenar por data/timestamp se desejado
+                cachedRecords.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                updateTableAndPreview();
             });
         }
 
-        function loadRecordsTable() {
-            const records = JSON.parse(localStorage.getItem('attendance_records_nov2026') || '[]');
+        function updateTableAndPreview() {
             const tbody = document.getElementById('recordsTableBody');
             const countSpan = document.getElementById('totalRecordsCount');
             const previewArea = document.getElementById('csvPreviewArea');
             
             tbody.innerHTML = '';
-            countSpan.innerText = records.length;
+            countSpan.innerText = cachedRecords.length;
 
-            if (records.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registro encontrado.</td></tr>`;
+            if (cachedRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registro encontrado na nuvem.</td></tr>`;
                 previewArea.value = "Data;RA\n";
                 return;
             }
 
             let csvContent = "Data;RA\n";
-            records.forEach((rec, index) => {
+            cachedRecords.forEach((rec) => {
                 csvContent += `${rec.date};${rec.ra}\n`;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50";
@@ -220,7 +237,7 @@
                     <td class="p-3 font-mono text-xs">${rec.date}</td>
                     <td class="p-3 font-semibold text-white">${rec.ra}</td>
                     <td class="p-3 text-right">
-                        <button onclick="deleteRecord(${index})" class="text-rose-400 hover:text-rose-300 text-xs">Excluir</button>
+                        <button onclick="deleteRecord('${rec.id}')" class="text-rose-400 hover:text-rose-300 text-xs">Excluir</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -228,28 +245,23 @@
             previewArea.value = csvContent.trim();
         }
 
-        function deleteRecord(index) {
-            let records = JSON.parse(localStorage.getItem('attendance_records_nov2026') || '[]');
-            records.splice(index, 1);
-            localStorage.setItem('attendance_records_nov2026', JSON.stringify(records));
-            loadRecordsTable();
-        }
-
-        function clearAllRecords() {
-            if (confirm("Deseja realmente apagar todos os registros salvos?")) {
-                localStorage.removeItem('attendance_records_nov2026');
-                loadRecordsTable();
+        window.deleteRecord = async function(id) {
+            if (confirm("Deseja realmente excluir este registro da nuvem?")) {
+                try {
+                    await deleteDoc(doc(db, "presencas", id));
+                } catch (err) {
+                    alert("Erro ao excluir registro.");
+                }
             }
         }
 
-        function exportCSV() {
-            const records = JSON.parse(localStorage.getItem('attendance_records_nov2026') || '[]');
-            if (records.length === 0) {
+        window.exportCSV = function() {
+            if (cachedRecords.length === 0) {
                 alert("Não há registros para exportar.");
                 return;
             }
             let csv = "Data;RA\n";
-            records.forEach(r => { csv += `${r.date};${r.ra}\n`; });
+            cachedRecords.forEach(r => { csv += `${r.date};${r.ra}\n`; });
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -261,7 +273,7 @@
             URL.revokeObjectURL(url);
         }
 
-        function copyCSVContent() {
+        window.copyCSVContent = function() {
             const previewArea = document.getElementById('csvPreviewArea');
             previewArea.select();
             document.execCommand('copy');
