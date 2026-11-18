@@ -3,108 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Professor - Controle de Presença</title>
+    <title>Registro de Presença - Aluno</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-dvh flex flex-col justify-between">
+<body class="bg-slate-900 text-slate-100 min-h-dvh flex flex-col justify-between no-select" oncontextmenu="return false;">
 
-    <!-- PIN LOCK SCREEN OVERLAY -->
-    <div id="pinOverlay" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl space-y-4 text-center">
-            <div class="bg-indigo-600/10 text-indigo-400 w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+    <!-- HEADER -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-md sticky top-0 z-30">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight">Registro de Presença</h1>
+                    <p class="text-xs text-slate-400">Portal do Aluno (GPS 3km e Nuvem)</p>
+                </div>
             </div>
-            <h2 class="text-xl font-bold text-white">Painel Restrito</h2>
-            <p class="text-xs text-slate-400">Digite o PIN do professor para acessar os dados e chaves</p>
-            <input type="password" id="pinInput" placeholder="PIN de acesso" onkeypress="handlePinKeypress(event)"
-                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <button onclick="verifyPin()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-indigo-600/30">
-                Entrar no Painel
-            </button>
-        </div>
-    </div>
-
-    <!-- MAIN PROFESSOR CONTENT -->
-    <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-md">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-lg font-bold tracking-tight">Painel do Professor</h1>
-                <p class="text-xs text-slate-400">Gerenciamento de QR Codes Diários e Nuvem Firebase</p>
-            </div>
-            <a href="index.html" target="_blank" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition">
-                Abrir Página do Aluno ↗
-            </a>
         </div>
     </header>
 
-    <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex-grow space-y-6">
-        
-        <!-- KEYS & QR CODES PER DAY -->
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
-            <div>
-                <h2 class="text-xl font-bold text-white mb-1">Chaves e QR Codes por Dia do Evento</h2>
-                <p class="text-xs text-slate-400">Cada dia possui uma chave e um QR Code exclusivo para projetar na sala.</p>
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full">
+            <div class="text-center mb-6">
+                <span class="inline-block bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                    Data do Evento
+                </span>
+                <h2 id="displayDateText" class="text-2xl font-bold tracking-tight text-white">Carregando...</h2>
+                <p class="text-xs text-slate-400 mt-1">Informe seu RA para registrar a presença</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="dailyCardsContainer">
-                <!-- Populated dynamically -->
-            </div>
-
-            <!-- RECORDS & CSV -->
-            <div class="pt-6 border-t border-slate-700 space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <!-- FORM OR CLOSED NOTICE -->
+            <div id="attendanceContainer">
+                <form id="attendanceForm" onsubmit="handleAttendanceSubmit(event)" class="space-y-4">
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Alunos Registrados na Nuvem (<span id="totalRecordsCount">0</span>)</h3>
-                        <p class="text-xs text-slate-400">Sincronizado em tempo real (Data;RA)</p>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Seu RA</label>
+                        <input type="text" id="inputRA" required placeholder="Ex: 123456" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base min-h-[50px]">
                     </div>
-                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <button onclick="exportCSV()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20">
-                            Exportar CSV
-                        </button>
-                    </div>
-                </div>
 
-                <div class="overflow-x-auto border border-slate-700 rounded-xl">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900 text-xs uppercase text-slate-400 border-b border-slate-700">
-                            <tr>
-                                <th class="p-3">Data</th>
-                                <th class="p-3">RA do Aluno</th>
-                                <th class="p-3 text-right">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recordsTableBody" class="divide-y divide-slate-700">
-                            <tr><td colspan="3" class="p-4 text-center text-slate-500">Carregando dados da nuvem...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-4">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Pré-visualização do CSV (Data;RA)</label>
-                        <button onclick="copyCSVContent()" class="text-xs text-indigo-400 hover:underline">Copiar Conteúdo CSV</button>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Chave Diária (Automática)</label>
+                        <input type="text" id="inputKey" disabled
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 font-mono text-base tracking-wider min-h-[50px] opacity-80 cursor-not-allowed">
                     </div>
-                    <textarea id="csvPreviewArea" readonly class="w-full h-24 bg-slate-900 border border-slate-700 rounded-xl p-3 font-mono text-xs text-slate-300 focus:outline-none"></textarea>
-                </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl transition shadow-lg shadow-indigo-600/30 text-base flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Verificar Local e Confirmar
+                    </button>
+                </form>
             </div>
+
+            <div id="closedNotice" class="hidden text-center py-6 space-y-3">
+                <div class="text-amber-400 font-semibold text-sm">QR Code inválido ou data não informada</div>
+                <p class="text-xs text-slate-400">Escaneie o QR Code oficial impresso para o dia correto.</p>
+            </div>
+
+            <div id="feedbackMessage" class="mt-4 hidden p-3 rounded-xl text-sm font-medium text-center"></div>
         </div>
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-slate-800/50 border-t border-slate-800 p-4 text-center text-xs text-slate-500">
-        Painel Restrito do Professor &bull; Firebase Cloud
+        Sistema Escolar &bull; Validação por Geolocalização (3km) e Nuvem
     </footer>
 
-    <!-- FIREBASE & PROFESSOR LOGIC -->
+    <!-- FIREBASE & APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB9XViTYh4rB0YGW3sigiE7812PnVMARzY",
@@ -127,162 +113,157 @@
             "27/11/2026": "X8$hG2%vC7&pK3@"
         };
 
-        let cachedRecords = [];
+        const AUTHORIZED_LOCATIONS = [
+            { name: "Rua Augusta, 1508", lat: -23.555812, lng: -46.658245 },
+            { name: "Rua Borges de Figueiredo, 510 - Mooca", lat: -23.553920, lng: -46.602810 }
+        ];
 
-        window.verifyPin = function() {
-            const pin = document.getElementById('pinInput').value;
-            if (pin === "4Conteex2026") {
-                document.getElementById('pinOverlay').classList.add('hidden');
-                initDashboard();
+        const MAX_DISTANCE_METERS = 3000;
+        let targetDate = "";
+        let targetKey = "";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initTargetFromQR();
+        });
+
+        function initTargetFromQR() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateParam = urlParams.get('data');
+            const keyParam = urlParams.get('key');
+
+            if (dateParam && keyParam && VALID_KEYS[dateParam] === keyParam) {
+                targetDate = dateParam;
+                targetKey = keyParam;
+            }
+
+            if (targetDate && targetKey) {
+                document.getElementById('displayDateText').innerText = targetDate;
+                document.getElementById('inputKey').value = targetKey;
             } else {
-                alert("PIN incorreto!");
-                document.getElementById('pinInput').value = '';
-                document.getElementById('pinInput').focus();
+                document.getElementById('attendanceContainer').classList.add('hidden');
+                document.getElementById('closedNotice').classList.remove('hidden');
+                document.getElementById('displayDateText').innerText = "Indisponível";
             }
         }
 
-        window.handlePinKeypress = function(e) {
-            if (e.key === 'Enter') verifyPin();
-        }
+        window.handleAttendanceSubmit = async function(e) {
+            e.preventDefault();
+            const ra = document.getElementById('inputRA').value.trim();
 
-        function initDashboard() {
-            renderDailyCards();
-            listenToFirebaseRecords();
-        }
+            if (!targetDate || !targetKey || VALID_KEYS[targetDate] !== targetKey) {
+                showFeedback("Dados do QR Code inválidos.", "error");
+                return;
+            }
 
-        function renderDailyCards() {
-            const container = document.getElementById('dailyCardsContainer');
-            container.innerHTML = '';
-            const baseUrl = window.location.href.replace('professor.html', 'index.html');
+            if (!ra) {
+                showFeedback("Por favor, preencha o seu RA.", "error");
+                return;
+            }
 
-            let index = 0;
-            for (const [date, key] of Object.entries(VALID_KEYS)) {
-                const qrDivId = `qrcode-${index}`;
-                const card = document.createElement('div');
-                card.className = "bg-slate-900 border border-slate-700 p-4 rounded-xl flex flex-col justify-between gap-4";
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="bg-indigo-500/20 text-indigo-300 font-bold text-xs px-2.5 py-1 rounded-lg">${date}</span>
-                            <button onclick="navigator.clipboard.writeText('${key}'); alert('Chave de ${date} copiada!');" class="text-xs text-indigo-400 hover:underline">Copiar Chave</button>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Chave (15 Dígitos):</span>
-                            <code class="text-xs font-mono text-emerald-400 bg-slate-950 px-2 py-1 rounded block mt-1 select-all">${key}</code>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <div id="${qrDivId}" class="bg-white p-2 rounded-lg flex-shrink-0"></div>
-                        <div class="text-xs text-slate-400 space-y-1">
-                            <p class="font-semibold text-slate-200">QR Code Oficial</p>
-                            <p>Aponta direto para o dia ${date}</p>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
+            if (!navigator.geolocation) {
+                showFeedback("Seu navegador não suporta geolocalização.", "error");
+                return;
+            }
 
-                const targetUrl = `${baseUrl}?data=${encodeURIComponent(date)}`;
-                setTimeout(() => {
-                    const el = document.getElementById(qrDivId);
-                    if (el) {
-                        el.innerHTML = '';
-                        new QRCode(el, {
-                            text: targetUrl,
-                            width: 100,
-                            height: 100,
-                            colorDark : "#0f172a",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.H
-                        });
+            showFeedback("Obtendo sua localização GPS...", "success");
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const studentLat = position.coords.latitude;
+                    const studentLng = position.coords.longitude;
+
+                    let minDistance = Infinity;
+                    let nearestLocation = "";
+
+                    AUTHORIZED_LOCATIONS.forEach(loc => {
+                        const dist = calculateDistanceMeters(studentLat, studentLng, loc.lat, loc.lng);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            nearestLocation = loc.name;
+                        }
+                    });
+
+                    if (minDistance <= MAX_DISTANCE_METERS) {
+                        try {
+                            const q = query(collection(db, "presencas"), where("date", "==", targetDate), where("ra", "==", ra));
+                            const querySnapshot = await getDocs(q);
+
+                            if (!querySnapshot.empty) {
+                                submitBtn.disabled = false;
+                                showFeedback(`O RA ${ra} já possui presença registrada em ${targetDate}.`, "error");
+                                return;
+                            }
+
+                            await addDoc(collection(db, "presencas"), {
+                                date: targetDate,
+                                ra: ra,
+                                timestamp: new Date()
+                            });
+
+                            submitBtn.disabled = false;
+                            showFeedback(`Presença confirmada com sucesso para o RA ${ra} em ${targetDate}!`, "success");
+                            document.getElementById('inputRA').value = '';
+                        } catch (err) {
+                            submitBtn.disabled = false;
+                            showFeedback("Erro ao salvar na nuvem. Verifique sua conexão.", "error");
+                        }
+                    } else {
+                        submitBtn.disabled = false;
+                        showFeedback(`Localização negada: Você está a aprox. ${(minDistance/1000).toFixed(1)}km de ${nearestLocation}. O limite permitido é de 3km.`, "error");
                     }
-                }, 50);
+                },
+                (error) => {
+                    submitBtn.disabled = false;
+                    let errorMsg = "Erro ao obter localização.";
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMsg = "Permissão de GPS negada. Ative a localização para registrar a presença.";
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        errorMsg = "Informações de localização indisponíveis.";
+                    } else if (error.code === error.TIMEOUT) {
+                        errorMsg = "Tempo esgotado ao buscar sinal de GPS.";
+                    }
+                    showFeedback(errorMsg, "error");
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
 
-                index++;
+        function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function showFeedback(msg, type) {
+            const fb = document.getElementById('feedbackMessage');
+            fb.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30', 'bg-rose-500/10', 'text-rose-400', 'border-rose-500/30');
+            if (type === 'success') {
+                fb.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30');
+            } else {
+                fb.classList.add('bg-rose-500/10', 'text-rose-400', 'border', 'border-rose-500/30');
             }
+            fb.innerText = msg;
+            setTimeout(() => { fb.classList.add('hidden'); }, 8000);
         }
 
-        function listenToFirebaseRecords() {
-            onSnapshot(collection(db, "presencas"), (snapshot) => {
-                cachedRecords = [];
-                snapshot.forEach((docSnap) => {
-                    cachedRecords.push({ id: docSnap.id, ...docSnap.data() });
-                });
-
-                // Ordenar por data/timestamp se desejado
-                cachedRecords.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                updateTableAndPreview();
-            });
-        }
-
-        function updateTableAndPreview() {
-            const tbody = document.getElementById('recordsTableBody');
-            const countSpan = document.getElementById('totalRecordsCount');
-            const previewArea = document.getElementById('csvPreviewArea');
-            
-            tbody.innerHTML = '';
-            countSpan.innerText = cachedRecords.length;
-
-            if (cachedRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registro encontrado na nuvem.</td></tr>`;
-                previewArea.value = "Data;RA\n";
-                return;
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.key === 'F12') || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
             }
-
-            let csvContent = "Data;RA\n";
-            cachedRecords.forEach((rec) => {
-                csvContent += `${rec.date};${rec.ra}\n`;
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50";
-                tr.innerHTML = `
-                    <td class="p-3 font-mono text-xs">${rec.date}</td>
-                    <td class="p-3 font-semibold text-white">${rec.ra}</td>
-                    <td class="p-3 text-right">
-                        <button onclick="deleteRecord('${rec.id}')" class="text-rose-400 hover:text-rose-300 text-xs">Excluir</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            previewArea.value = csvContent.trim();
-        }
-
-        window.deleteRecord = async function(id) {
-            if (confirm("Deseja realmente excluir este registro da nuvem?")) {
-                try {
-                    await deleteDoc(doc(db, "presencas", id));
-                } catch (err) {
-                    alert("Erro ao excluir registro.");
-                }
-            }
-        }
-
-        window.exportCSV = function() {
-            if (cachedRecords.length === 0) {
-                alert("Não há registros para exportar.");
-                return;
-            }
-            let csv = "Data;RA\n";
-            cachedRecords.forEach(r => { csv += `${r.date};${r.ra}\n`; });
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `presencas_semana_nov2026.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        window.copyCSVContent = function() {
-            const previewArea = document.getElementById('csvPreviewArea');
-            previewArea.select();
-            document.execCommand('copy');
-            alert("Conteúdo CSV copiado para a área de transferência!");
-        }
-
-        window.onload = () => {
-            document.getElementById('pinInput').focus();
-        };
+        });
     </script>
 </body>
 </html>
