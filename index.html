@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Frequência Acadêmica | 23/11 a 27/11/2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonte Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Biblioteca QRCodeJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Bloqueio de seleção visual na interface estrutural */
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        /* Permitir seleção e digitação confortável (16px evita zoom automático no iOS/Android) */
+        input, select {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+            font-size: 16px !important;
+            min-height: 48px;
+        }
+        /* Tipografia fluida com clamp() */
+        .fluid-title {
+            font-size: clamp(1.125rem, 2.5vw + 0.75rem, 1.5rem);
+            line-height: 1.25;
+        }
+        .fluid-subtitle {
+            font-size: clamp(0.8125rem, 1.2vw + 0.5rem, 0.9375rem);
+        }
+        /* QR Code fluido */
+        #qrcode-container img,
+        #qrcode-container canvas {
+            max-width: 100% !important;
+            height: auto !important;
+            margin: 0 auto;
+        }
+        /* Ocultar elementos durante impressão exceto QR Code */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-qr-area, #print-qr-area * {
+                visibility: visible;
+            }
+            #print-qr-area {
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 2rem;
+                border: 2px solid #0f172a;
+                border-radius: 1rem;
+                text-align: center;
+                width: min(90vw, 360px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-dvh flex flex-col justify-between antialiased">
+
+    <!-- Tela de Bloqueio de Segurança (Anti-Inspeção / DevTools) -->
+    <div id="security-lock-overlay" class="fixed inset-0 z-50 bg-slate-950 text-white hidden flex-col items-center justify-center p-6 text-center">
+        <div class="bg-red-500/10 border border-red-500/30 p-8 rounded-2xl max-w-md w-full shadow-2xl">
+            <div class="w-16 h-16 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-red-400 mb-2">Acesso Protegido</h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                A inspeção de código-fonte, clique com botão direito ou uso de ferramentas de desenvolvedor não são permitidos nesta página.
+            </p>
+            <button id="btn-reload-safe" class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition cursor-pointer">
+                Restaurar Página Segura
+            </button>
+        </div>
+    </div>
+
+    <!-- Cabeçalho Institucional -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 shrink-0 bg-indigo-600 rounded-xl flex items-center justify-center shadow-inner">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-bold text-base sm:text-lg leading-tight truncate">Controle de Frequência</h1>
+                        <p class="text-xs text-slate-400 truncate">Validação Diária por QR Code</p>
+                    </div>
+                </div>
+
+                <span id="header-date-badge" class="sm:hidden shrink-0 text-xs font-mono bg-slate-800 border border-slate-700 text-indigo-300 px-2.5 py-1.5 rounded-lg">
+                    --/--/----
+                </span>
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                <span id="header-date-badge-desktop" class="hidden sm:inline-block text-xs font-mono bg-slate-800 border border-slate-700 text-indigo-300 px-3 py-2 rounded-lg">
+                    --/--/----
+                </span>
+                <button id="btn-toggle-admin" type="button" class="w-full sm:w-auto min-h-[44px] text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 active:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span id="admin-btn-label">Área do Professor</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 md:py-10">
+
+        <!-- Banner de Aviso de Simulação (visível apenas quando modo teste está ativo) -->
+        <div id="simulation-banner" class="hidden mb-5 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-sm">
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm">
+                <span class="flex h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500 animate-ping"></span>
+                <span><strong>Modo Simulação Ativo:</strong> Data configurada para <strong id="sim-date-text" class="font-mono"></strong>.</span>
+            </div>
+            <button id="btn-reset-sim" type="button" class="min-h-[36px] self-start sm:self-auto text-xs font-semibold underline hover:text-amber-700 whitespace-nowrap cursor-pointer">
+                Voltar para data real
+            </button>
+        </div>
+
+        <!-- VISÃO 1: FORMULÁRIO DO ALUNO -->
+        <section id="student-view" class="w-full max-w-lg mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
+                <!-- Topo do Cartão -->
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-700 px-4 sm:px-6 py-5 sm:py-6 text-white">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 px-2.5 py-1 rounded-md">
+                            Registro Obrigatório
+                        </span>
+                        <span id="card-date-display" class="text-xs sm:text-sm font-mono font-bold bg-slate-900/30 px-3 py-1 rounded-lg">
+                            --/--/----
+                        </span>
+                    </div>
+                    <h2 class="fluid-title font-bold mt-2">Confirmar Presença</h2>
+                    <p class="fluid-subtitle text-indigo-100 mt-1">
+                        Informe seu RA e o código alfanumérico de 15 dígitos disponibilizado em sala hoje.
+                    </p>
+                </div>
+
+                <!-- Alerta Dinâmico de Status da Data -->
+                <div id="date-status-alert" class="hidden mx-4 sm:mx-6 mt-5 p-3.5 sm:p-4 rounded-xl border text-xs sm:text-sm leading-relaxed"></div>
+
+                <!-- Formulário de Registro -->
+                <form id="attendance-form" class="p-4 sm:p-6 space-y-5" autocomplete="off" novalidate>
+                    <!-- Campo RA -->
+                    <div>
+                        <label for="input-ra" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            RA (Registro do Aluno) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="input-ra"
+                                name="ra"
+                                inputmode="text"
+                                autocapitalize="characters"
+                                autocorrect="off"
+                                spellcheck="false"
+                                required
+                                maxlength="20"
+                                placeholder="Ex: 2026104589"
+                                class="w-full min-h-[50px] px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-base uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                            >
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1.5">Digite apenas letras e números do seu registro acadêmico.</p>
+                    </div>
+
+                    <!-- Campo Código de 15 Dígitos Alfanuméricos -->
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <label for="input-code" class="text-sm font-semibold text-slate-700 leading-snug">
+                                Código Diário (15 dígitos) <span class="text-red-500">*</span>
+                            </label>
+                            <span id="code-counter" class="shrink-0 whitespace-nowrap text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">
+                                0/15
+                            </span>
+                        </div>
+                        <input
+                            type="text"
+                            id="input-code"
+                            name="code"
+                            inputmode="text"
+                            autocapitalize="characters"
+                            autocorrect="off"
+                            spellcheck="false"
+                            required
+                            maxlength="15"
+                            minlength="15"
+                            placeholder="Ex: SEG23NOV2026A1B"
+                            class="w-full min-h-[50px] px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-base tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        >
+                        <div class="flex flex-wrap items-center justify-between gap-1.5 mt-1.5">
+                            <p class="text-xs text-slate-500">Exatamente 15 caracteres (A-Z e 0-9).</p>
+                            <span id="code-format-hint" class="text-xs font-medium text-slate-400 whitespace-nowrap">Aguardando...</span>
+                        </div>
+                    </div>
+
+                    <!-- Data Automática (Somente Leitura) -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col xs:flex-row sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="block text-xs font-medium text-slate-500">Data de Registro (dd/mm/aaaa)</span>
+                            <span id="readonly-date-value" class="font-mono font-bold text-slate-800 text-sm">--/--/----</span>
+                        </div>
+                        <div class="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+                            <span class="block text-xs font-medium text-slate-500">Período Letivo</span>
+                            <span class="text-xs font-semibold text-indigo-600">23/11 a 27/11/2026</span>
+                        </div>
+                    </div>
+
+                    <!-- Caixa de Mensagem de Feedback -->
+                    <div id="form-feedback" class="hidden p-4 rounded-xl text-sm font-medium border leading-relaxed"></div>
+
+                    <!-- Botão de Envio -->
+                    <button
+                        type="submit"
+                        id="btn-submit-attendance"
+                        class="w-full min-h-[52px] py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2 text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Registrar Presença</span>
+                    </button>
+                </form>
+
+                <!-- Comprovante Imediato Pós-Registro -->
+                <div id="receipt-card" class="hidden m-4 sm:m-6 mt-0 p-4 sm:p-5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 bg-emerald-600 text-white rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div class="w-full min-w-0">
+                            <h3 class="font-bold text-emerald-900 text-base">Presença Confirmada!</h3>
+                            <p class="text-xs text-emerald-700 mt-0.5">Seus dados foram gravados para fechamento semanal.</p>
+                            <div class="mt-3 pt-3 border-t border-emerald-200/80 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
+                                <div>
+                                    <span class="text-emerald-600 block font-sans">RA Registrado:</span>
+                                    <strong id="rec-ra" class="text-emerald-950 text-sm break-all"></strong>
+                                </div>
+                                <div>
+                                    <span class="text-emerald-600 block font-sans">Data (dd/mm/aaaa):</span>
+                                    <strong id="rec-date" class="text-emerald-950 text-sm"></strong>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <span class="text-emerald-600 block font-sans">Horário / Protocolo:</span>
+                                    <strong id="rec-time" class="text-emerald-950"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISÃO 2: AUTENTICAÇÃO DO PROFESSOR -->
+        <section id="admin-login-view" class="hidden w-full max-w-md mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8">
+                <div class="w-12 h-12 bg-slate-900 text-indigo-400 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">Acesso Restrito ao Docente</h2>
+                <p class="text-sm text-slate-500 mt-1 mb-6">
+                    Digite a senha administrativa para gerenciar códigos diários, gerar QR Code e exportar o CSV da semana.
+                </p>
+
+                <form id="admin-login-form" class="space-y-4">
+                    <div>
+                        <label for="admin-pin-input" class="block text-sm font-semibold text-slate-700 mb-1.5">Senha de Acesso</label>
+                        <input
+                            type="password"
+                            id="admin-pin-input"
+                            inputmode="numeric"
+                            required
+                            placeholder="Digite o PIN docente"
+                            class="w-full min-h-[48px] px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                        <p class="text-xs text-slate-400 mt-1.5">PIN padrão inicial: <span class="font-mono font-semibold text-slate-600">2026</span></p>
+                    </div>
+                    <div id="admin-login-error" class="hidden text-xs font-medium text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg"></div>
+                    <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                        <button type="button" id="btn-cancel-admin" class="w-full sm:w-1/2 min-h-[48px] py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition cursor-pointer">
+                            Voltar
+                        </button>
+                        <button type="submit" class="w-full sm:w-1/2 min-h-[48px] py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl transition cursor-pointer">
+                            Entrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VISÃO 3: PAINEL DO PROFESSOR / COORDENAÇÃO -->
+        <section id="admin-dashboard-view" class="hidden space-y-5 sm:space-y-6">
+            <!-- Barra Superior do Painel -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900">Painel de Gestão de Frequência</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Semana de 23/11/2026 a 27/11/2026 &bull; Exportação CSV Consolidada</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                    <button id="btn-export-csv" type="button" class="w-full sm:w-auto min-h-[46px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Exportar CSV da Semana</span>
+                    </button>
+                    <button id="btn-back-student" type="button" class="w-full sm:w-auto min-h-[46px] px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition flex items-center justify-center cursor-pointer">
+                        Tela do Aluno
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid: Códigos Diários + Gerador de QR Code -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+                <!-- Tabela / Cards de Códigos dos 5 Dias -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-4">
+                            <h3 class="font-bold text-slate-900 text-base">Códigos Alfanuméricos por Dia (15 dígitos)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Cada data aceita exclusivamente o seu respectivo código de 15 caracteres.</p>
+                        </div>
+
+                        <!-- Versão Mobile em Cards Empilhados (visível < sm) -->
+                        <div id="daily-codes-mobile-cards" class="sm:hidden space-y-2.5">
+                            <!-- Preenchido via JS -->
+                        </div>
+
+                        <!-- Versão Tablet/Desktop em Tabela (visível >= sm) -->
+                        <div class="hidden sm:block overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
+                                        <th class="py-2.5 px-3">Dia</th>
+                                        <th class="py-2.5 px-3">Data (dd/mm/aaaa)</th>
+                                        <th class="py-2.5 px-3">Código (15 dígitos)</th>
+                                        <th class="py-2.5 px-3 text-right">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="daily-codes-tbody" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Preenchido via JS seguro -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Simulador de Data para Testes -->
+                    <div class="mt-5 pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-xl">
+                        <div>
+                            <label for="sim-date-select" class="block text-xs font-bold text-slate-700 uppercase">
+                                Simular Data do Sistema (Teste)
+                            </label>
+                            <p class="text-xs text-slate-500 mt-0.5">Permite testar o formulário antes de 23/11/2026.</p>
+                        </div>
+                        <select id="sim-date-select" class="w-full sm:w-auto min-h-[46px] px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-mono font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="REAL">Data Real do Dispositivo</option>
+                            <option value="23/11/2026">23/11/2026 (Segunda)</option>
+                            <option value="24/11/2026">24/11/2026 (Terça)</option>
+                            <option value="25/11/2026">25/11/2026 (Quarta)</option>
+                            <option value="26/11/2026">26/11/2026 (Quinta)</option>
+                            <option value="27/11/2026">27/11/2026 (Sexta)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cartão Gerador de QR Code -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col items-center justify-between text-center">
+                    <div class="w-full">
+                        <h3 class="font-bold text-slate-900 text-base">QR Code de Acesso</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Projete ou imprima para os alunos escanearem.</p>
+                    </div>
+
+                    <div id="print-qr-area" class="my-4 p-4 bg-white border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center w-full max-w-[230px]">
+                        <div id="qrcode-container" class="flex items-center justify-center w-full"></div>
+                        <span class="mt-2.5 text-[11px] font-mono font-bold text-slate-700">Frequência 23/11 a 27/11/2026</span>
+                    </div>
+
+                    <div class="w-full space-y-2.5">
+                        <input
+                            type="text"
+                            id="qr-url-input"
+                            placeholder="URL da página hospedada"
+                            class="w-full min-h-[44px] px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl text-slate-700"
+                        >
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-update-qr" type="button" class="min-h-[44px] py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                                Atualizar QR
+                            </button>
+                            <button id="btn-print-qr" type="button" class="min-h-[44px] py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                                Imprimir QR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Presenças Registradas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <h3 class="font-bold text-slate-900 text-base">Presenças Registradas</h3>
+                        <span id="records-count-badge" class="text-xs font-mono font-bold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full">
+                            0 registros
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                        <select id="filter-records-date" class="w-full sm:w-auto min-h-[44px] px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700">
+                            <option value="ALL">Todos os dias (Semana)</option>
+                            <option value="23/11/2026">23/11/2026</option>
+                            <option value="24/11/2026">24/11/2026</option>
+                            <option value="25/11/2026">25/11/2026</option>
+                            <option value="26/11/2026">26/11/2026</option>
+                            <option value="27/11/2026">27/11/2026</option>
+                        </select>
+                        <button id="btn-clear-records" type="button" class="w-full sm:w-auto min-h-[44px] px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition cursor-pointer">
+                            Limpar Lista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notificação interna do painel -->
+                <div id="admin-toast" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold border"></div>
+
+                <!-- Cards Mobile para Presenças Registradas (< sm) -->
+                <div id="attendance-records-mobile" class="sm:hidden space-y-2.5">
+                    <!-- Preenchido via JS -->
+                </div>
+
+                <!-- Tabela Desktop/Tablet para Presenças Registradas (>= sm) -->
+                <div class="hidden sm:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase bg-slate-50">
+                                <th class="py-3 px-4 rounded-tl-lg">RA</th>
+                                <th class="py-3 px-4">Data (dd/mm/aaaa)</th>
+                                <th class="py-3 px-4">Código Utilizado</th>
+                                <th class="py-3 px-4 rounded-tr-lg">Horário</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-records-tbody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500 leading-relaxed">
+        Sistema Institucional de Frequência &bull; Ambiente Protegido contra Inspeção &bull; Formato de Data Padrão: <span class="font-mono">dd/mm/aaaa</span>
+    </footer>
+
+    <!-- Lógica Blindada em Closure Isolada -->
+    <script>
+        (function () {
+            "use strict";
+
+            // =========================================================================
+            // 1. CAMADA DE PROTEÇÃO CONTRA INSPEÇÃO DE CÓDIGO E DEVTOOLS
+            // =========================================================================
+            const securityOverlay = document.getElementById("security-lock-overlay");
+            let isLocked = false;
+
+            function triggerSecurityLock() {
+                if (isLocked) return;
+                isLocked = true;
+                if (securityOverlay) {
+                    securityOverlay.classList.remove("hidden");
+                    securityOverlay.classList.add("flex");
+                }
+                const adminDash = document.getElementById("admin-dashboard-view");
+                if (adminDash) adminDash.innerHTML = "";
+            }
+
+            // Bloqueia botão direito do mouse (menu de contexto)
+            document.addEventListener("contextmenu", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }, true);
+
+            // Bloqueia atalhos de teclado: F12, Ctrl+F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S, Cmd+Opt+I/J/U
+            document.addEventListener("keydown", function (e) {
+                const key = (e.key || "").toUpperCase();
+                const code = e.keyCode || e.which;
+
+                if (key === "F12" || code === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerSecurityLock();
+                    return false;
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && ["I", "J", "C", "K"].includes(key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerSecurityLock();
+                    return false;
+                }
+
+                if ((e.ctrlKey || e.metaKey) && ["U", "S"].includes(key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerSecurityLock();
+                    return false;
+                }
+
+                if (e.metaKey && e.altKey && ["I", "J", "U", "C"].includes(key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerSecurityLock();
+                    return false;
+                }
+            }, true);
+
+            // Bloqueia arrastar elementos
+            document.addEventListener("dragstart", function (e) {
+                e.preventDefault();
+            }, true);
+
+            // Detecção segura de DevTools (evitando falsos positivos em smartphones/tablets)
+            function isMobileOrTouchDevice() {
+                return (
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 1024)
+                );
+            }
+
+            setInterval(function () {
+                // Só aplica heurística de diferença de janela em desktops reais (evita falsos positivos com barra de endereço/teclado virtual mobile)
+                if (!isMobileOrTouchDevice() && window.outerWidth > 0 && window.outerHeight > 0) {
+                    const widthThreshold = window.outerWidth - window.innerWidth > 200;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 220;
+                    if (widthThreshold || heightThreshold) {
+                        triggerSecurityLock();
+                    }
+                }
+
+                const start = performance.now();
+                (function () { return false; })["constructor"]("debugger")["call"]();
+                const end = performance.now();
+                if (end - start > 150) {
+                    triggerSecurityLock();
+                }
+            }, 1500);
+
+            document.getElementById("btn-reload-safe").addEventListener("click", function () {
+                window.location.reload();
+            });
+
+            // =========================================================================
+            // 2. CONFIGURAÇÃO CODIFICADA DAS DATAS E CÓDIGOS DE 15 DÍGITOS (NOV/2026)
+            // =========================================================================
+            const _0x5a1b = [
+                { d: "MjMvMTEvMjAyNg==", w: "U2VndW5kYS1mZWlyYQ==", c: "U0VHMjNOT1YyMDI2QTFCCg==" }, // 23/11/2026 -> SEG23NOV2026A1B
+                { d: "MjQvMTEvMjAyNg==", w: "VGVyw6dhLWZlaXJh",     c: "VEVSMjROT1YyMDI2QzNECg==" }, // 24/11/2026 -> TER24NOV2026C3D
+                { d: "MjUvMTEvMjAyNg==", w: "UXVhcnRhLWZlaXJh",     c: "UVVBMjVOT1YyMDI2RTVGCg==" }, // 25/11/2026 -> QUA25NOV2026E5F
+                { d: "MjYvMTEvMjAyNg==", w: "UXVpbnRhLWZlaXJh",     c: "UVVJMJZOT1YyMDI2RzdICg==" }, // 26/11/2026 -> QUI26NOV2026G7H
+                { d: "MjcvMTEvMjAyNg==", w: "U2V4dGEtZmVpcmE=",     c: "U0VYMjdOT1YyMDI2SjlLCg==" }  // 27/11/2026 -> SEX27NOV2026J9K
+            ];
+
+            const _0x9f2e = "MjAyNg=="; // PIN docente padrão: 2026
+            const STORAGE_KEY = "_acad_freq_2026_nov_v1";
+
+            function decodeStr(b64) {
+                try {
+                    return decodeURIComponent(escape(window.atob(b64))).trim();
+                } catch (e) {
+                    return window.atob(b64).trim();
+                }
+            }
+
+            const SCHEDULE_MAP = _0x5a1b.map(function (item) {
+                return {
+                    date: decodeStr(item.d),
+                    weekday: decodeStr(item.w),
+                    code: decodeStr(item.c)
+                };
+            });
+
+            let simulatedDate = null;
+            let isAdminAuthenticated = false;
+            let clearConfirmPending = false;
+            let qrInstance = null;
+
+            // =========================================================================
+            // 3. UTILITÁRIOS DE DATA (dd/mm/aaaa) E ARMAZENAMENTO
+            // =========================================================================
+            function getFormattedToday() {
+                if (simulatedDate) {
+                    return simulatedDate;
+                }
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, "0");
+                const month = String(now.getMonth() + 1).padStart(2, "0");
+                const year = now.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+
+            function getFormattedTime() {
+                const now = new Date();
+                return now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            }
+
+            function getScheduleForDate(dateStr) {
+                return SCHEDULE_MAP.find(function (item) {
+                    return item.date === dateStr;
+                }) || null;
+            }
+
+            function loadRecords() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return [];
+                    const decoded = decodeURIComponent(escape(window.atob(raw)));
+                    const parsed = JSON.parse(decoded);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveRecords(records) {
+                try {
+                    const json = JSON.stringify(records);
+                    const encoded = window.btoa(unescape(encodeURIComponent(json)));
+                    localStorage.setItem(STORAGE_KEY, encoded);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // =========================================================================
+            // 4. REFERÊNCIAS DO DOM E ATUALIZAÇÃO DE INTERFACE
+            // =========================================================================
+            const headerDateBadge = document.getElementById("header-date-badge");
+            const headerDateBadgeDesktop = document.getElementById("header-date-badge-desktop");
+            const cardDateDisplay = document.getElementById("card-date-display");
+            const readonlyDateValue = document.getElementById("readonly-date-value");
+            const dateStatusAlert = document.getElementById("date-status-alert");
+            const simulationBanner = document.getElementById("simulation-banner");
+            const simDateText = document.getElementById("sim-date-text");
+
+            const studentView = document.getElementById("student-view");
+            const adminLoginView = document.getElementById("admin-login-view");
+            const adminDashboardView = document.getElementById("admin-dashboard-view");
+
+            const inputRa = document.getElementById("input-ra");
+            const inputCode = document.getElementById("input-code");
+            const codeCounter = document.getElementById("code-counter");
+            const codeFormatHint = document.getElementById("code-format-hint");
+            const formFeedback = document.getElementById("form-feedback");
+            const receiptCard = document.getElementById("receipt-card");
+            const btnSubmitAttendance = document.getElementById("btn-submit-attendance");
+
+            function showFeedback(message, type) {
+                formFeedback.classList.remove("hidden", "bg-red-50", "text-red-700", "border-red-200", "bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                if (type === "error") {
+                    formFeedback.classList.add("bg-red-50", "text-red-700", "border-red-200");
+                } else {
+                    formFeedback.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                }
+                formFeedback.textContent = message;
+            }
+
+            function hideFeedback() {
+                formFeedback.classList.add("hidden");
+            }
+
+            function showAdminToast(message, isError) {
+                const toast = document.getElementById("admin-toast");
+                toast.classList.remove("hidden", "bg-red-50", "text-red-700", "border-red-200", "bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                if (isError) {
+                    toast.classList.add("bg-red-50", "text-red-700", "border-red-200");
+                } else {
+                    toast.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                }
+                toast.textContent = message;
+                setTimeout(function () {
+                    toast.classList.add("hidden");
+                }, 4000);
+            }
+
+            function refreshDateState() {
+                const activeDate = getFormattedToday();
+                if (headerDateBadge) headerDateBadge.textContent = activeDate;
+                if (headerDateBadgeDesktop) headerDateBadgeDesktop.textContent = activeDate;
+                cardDateDisplay.textContent = activeDate;
+                readonlyDateValue.textContent = activeDate;
+
+                if (simulatedDate) {
+                    simulationBanner.classList.remove("hidden");
+                    simDateText.textContent = simulatedDate;
+                } else {
+                    simulationBanner.classList.add("hidden");
+                }
+
+                const dayConfig = getScheduleForDate(activeDate);
+                if (dayConfig) {
+                    dateStatusAlert.classList.remove("hidden", "bg-amber-50", "border-amber-200", "text-amber-800");
+                    dateStatusAlert.classList.add("bg-indigo-50", "border-indigo-200", "text-indigo-900");
+                    dateStatusAlert.innerHTML = `<strong>Dia Letivo Ativo (${dayConfig.weekday}):</strong> Registro liberado para a data <span class="font-mono font-bold">${activeDate}</span>.`;
+                    btnSubmitAttendance.disabled = false;
+                } else {
+                    dateStatusAlert.classList.remove("hidden", "bg-indigo-50", "border-indigo-200", "text-indigo-900");
+                    dateStatusAlert.classList.add("bg-amber-50", "border-amber-200", "text-amber-900");
+                    dateStatusAlert.innerHTML = `<strong>Fora do Período de Registro:</strong> A data atual (<span class="font-mono font-bold">${activeDate}</span>) não pertence aos dias programados (23/11/2026 a 27/11/2026).`;
+                    btnSubmitAttendance.disabled = true;
+                }
+            }
+
+            // =========================================================================
+            // 5. VALIDAÇÃO EM TEMPO REAL DOS CAMPOS DO ALUNO
+            // =========================================================================
+            inputRa.addEventListener("input", function () {
+                this.value = this.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+                hideFeedback();
+            });
+
+            inputCode.addEventListener("input", function () {
+                const cleaned = this.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 15);
+                this.value = cleaned;
+
+                const len = cleaned.length;
+                codeCounter.textContent = `${len}/15`;
+
+                if (len === 15) {
+                    codeCounter.classList.remove("bg-slate-100", "text-slate-600");
+                    codeCounter.classList.add("bg-emerald-100", "text-emerald-700");
+                    codeFormatHint.textContent = "Formato válido (15 dígitos)";
+                    codeFormatHint.className = "text-xs font-semibold text-emerald-600 whitespace-nowrap";
+                } else {
+                    codeCounter.classList.remove("bg-emerald-100", "text-emerald-700");
+                    codeCounter.classList.add("bg-slate-100", "text-slate-600");
+                    codeFormatHint.textContent = `Faltam ${15 - len} caracteres`;
+                    codeFormatHint.className = "text-xs font-medium text-slate-400 whitespace-nowrap";
+                }
+                hideFeedback();
+            });
+
+            document.getElementById("attendance-form").addEventListener("submit", function (e) {
+                e.preventDefault();
+                hideFeedback();
+                receiptCard.classList.add("hidden");
+
+                const activeDate = getFormattedToday();
+                const dayConfig = getScheduleForDate(activeDate);
+
+                if (!dayConfig) {
+                    showFeedback(`Registro indisponível hoje (${activeDate}). O sistema aceita registros apenas de 23/11/2026 a 27/11/2026.`, "error");
+                    return;
+                }
+
+                const raValue = inputRa.value.trim().toUpperCase();
+                const codeValue = inputCode.value.trim().toUpperCase();
+
+                if (!raValue || raValue.length < 3) {
+                    showFeedback("Por favor, informe um número de RA válido.", "error");
+                    inputRa.focus();
+                    return;
+                }
+
+                if (!/^[A-Z0-9]{15}$/.test(codeValue)) {
+                    showFeedback("O código de validação deve conter exatamente 15 dígitos alfanuméricos (letras e números).", "error");
+                    inputCode.focus();
+                    return;
+                }
+
+                if (codeValue !== dayConfig.code) {
+                    showFeedback(`Código inválido para a data ${activeDate}. Verifique o código de 15 dígitos informado pelo professor hoje.`, "error");
+                    inputCode.focus();
+                    return;
+                }
+
+                const records = loadRecords();
+
+                const alreadyRegistered = records.some(function (rec) {
+                    return rec.ra === raValue && rec.data === activeDate;
+                });
+
+                if (alreadyRegistered) {
+                    showFeedback(`O RA ${raValue} já possui presença registrada na data ${activeDate}.`, "error");
+                    return;
+                }
+
+                const timeNow = getFormattedTime();
+                const newRecord = {
+                    ra: raValue,
+                    data: activeDate,
+                    codigo: codeValue,
+                    horario: timeNow
+                };
+
+                records.push(newRecord);
+                saveRecords(records);
+
+                document.getElementById("rec-ra").textContent = raValue;
+                document.getElementById("rec-date").textContent = activeDate;
+                document.getElementById("rec-time").textContent = `${timeNow} • Validado com sucesso`;
+                receiptCard.classList.remove("hidden");
+
+                inputRa.value = "";
+                inputCode.value = "";
+                codeCounter.textContent = "0/15";
+                codeCounter.className = "shrink-0 whitespace-nowrap text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600";
+                codeFormatHint.textContent = "Aguardando...";
+                codeFormatHint.className = "text-xs font-medium text-slate-400 whitespace-nowrap";
+            });
+
+            // =========================================================================
+            // 6. NAVEGAÇÃO E PAINEL DO PROFESSOR
+            // =========================================================================
+            function switchView(viewName) {
+                studentView.classList.add("hidden");
+                adminLoginView.classList.add("hidden");
+                adminDashboardView.classList.add("hidden");
+
+                if (viewName === "student") {
+                    studentView.classList.remove("hidden");
+                } else if (viewName === "login") {
+                    adminLoginView.classList.remove("hidden");
+                    document.getElementById("admin-pin-input").value = "";
+                    document.getElementById("admin-login-error").classList.add("hidden");
+                    document.getElementById("admin-pin-input").focus();
+                } else if (viewName === "dashboard") {
+                    adminDashboardView.classList.remove("hidden");
+                    renderDailyCodesTable();
+                    renderRecordsTable();
+                    initQRCode();
+                }
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            document.getElementById("btn-toggle-admin").addEventListener("click", function () {
+                if (isAdminAuthenticated) {
+                    switchView("dashboard");
+                } else {
+                    switchView("login");
+                }
+            });
+
+            document.getElementById("btn-cancel-admin").addEventListener("click", function () {
+                switchView("student");
+            });
+
+            document.getElementById("btn-back-student").addEventListener("click", function () {
+                switchView("student");
+            });
+
+            document.getElementById("admin-login-form").addEventListener("submit", function (e) {
+                e.preventDefault();
+                const pin = document.getElementById("admin-pin-input").value.trim();
+                const errorBox = document.getElementById("admin-login-error");
+
+                if (pin === decodeStr(_0x9f2e)) {
+                    isAdminAuthenticated = true;
+                    switchView("dashboard");
+                } else {
+                    errorBox.textContent = "Senha incorreta. Tente novamente.";
+                    errorBox.classList.remove("hidden");
+                }
+            });
+
+            // Renderiza tabela desktop + cards mobile com os 5 códigos diários
+            function renderDailyCodesTable() {
+                const tbody = document.getElementById("daily-codes-tbody");
+                const mobileCards = document.getElementById("daily-codes-mobile-cards");
+                const activeDate = getFormattedToday();
+
+                tbody.innerHTML = "";
+                if (mobileCards) mobileCards.innerHTML = "";
+
+                SCHEDULE_MAP.forEach(function (item) {
+                    const isCurrent = item.date === activeDate;
+
+                    // Linha da tabela (>= sm)
+                    const tr = document.createElement("tr");
+                    tr.className = isCurrent ? "bg-indigo-50/70 font-medium" : "hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="py-3 px-3 text-slate-700 whitespace-nowrap">
+                            ${item.weekday}
+                            ${isCurrent ? '<span class="ml-1.5 text-[10px] font-bold uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded">Ativo</span>' : ''}
+                        </td>
+                        <td class="py-3 px-3 font-mono font-semibold text-slate-800 whitespace-nowrap">${item.date}</td>
+                        <td class="py-3 px-3 font-mono font-bold text-indigo-700 tracking-wider select-all whitespace-nowrap">${item.code}</td>
+                        <td class="py-3 px-3 text-right">
+                            <button type="button" data-copy-code="${item.code}" class="btn-copy-code min-h-[36px] px-3 py-1.5 bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 rounded-lg text-xs font-semibold transition cursor-pointer">
+                                Copiar
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // Card empilhado (< sm)
+                    if (mobileCards) {
+                        const card = document.createElement("div");
+                        card.className = `p-3.5 rounded-xl border ${isCurrent ? "bg-indigo-50/80 border-indigo-200" : "bg-slate-50/70 border-slate-200"} flex flex-col gap-2`;
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-sm text-slate-900">${item.date}</span>
+                                    <span class="text-xs text-slate-500">(${item.weekday})</span>
+                                </div>
+                                ${isCurrent ? '<span class="text-[10px] font-bold uppercase bg-indigo-600 text-white px-2 py-0.5 rounded">Ativo Hoje</span>' : ''}
+                            </div>
+                            <div class="flex items-center justify-between gap-2 pt-1">
+                                <code class="font-mono font-bold text-xs sm:text-sm text-indigo-700 bg-white border border-slate-200 px-2.5 py-2 rounded-lg tracking-wider select-all break-all">${item.code}</code>
+                                <button type="button" data-copy-code="${item.code}" class="btn-copy-code shrink-0 min-h-[40px] px-3.5 py-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition cursor-pointer">
+                                    Copiar
+                                </button>
+                            </div>
+                        `;
+                        mobileCards.appendChild(card);
+                    }
+                });
+
+                document.querySelectorAll(".btn-copy-code").forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        const codeToCopy = this.getAttribute("data-copy-code");
+                        const tempInput = document.createElement("input");
+                        tempInput.value = codeToCopy;
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(tempInput);
+
+                        const originalText = this.textContent;
+                        this.textContent = "Copiado!";
+                        this.classList.add("!bg-emerald-600", "!text-white");
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.classList.remove("!bg-emerald-600", "!text-white");
+                        }, 1500);
+                    });
+                });
+            }
+
+            const simDateSelect = document.getElementById("sim-date-select");
+            simDateSelect.addEventListener("change", function () {
+                const val = this.value;
+                simulatedDate = val === "REAL" ? null : val;
+                refreshDateState();
+                renderDailyCodesTable();
+                showAdminToast(simulatedDate ? `Modo de simulação ativado para ${simulatedDate}.` : "Retornado para a data real do dispositivo.", false);
+            });
+
+            document.getElementById("btn-reset-sim").addEventListener("click", function () {
+                simulatedDate = null;
+                simDateSelect.value = "REAL";
+                refreshDateState();
+            });
+
+            // =========================================================================
+            // 7. GERADOR DE QR CODE
+            // =========================================================================
+            function initQRCode() {
+                const qrUrlInput = document.getElementById("qr-url-input");
+                if (!qrUrlInput.value) {
+                    qrUrlInput.value = window.location.href;
+                }
+                renderQRCode(qrUrlInput.value);
+            }
+
+            function renderQRCode(urlText) {
+                const container = document.getElementById("qrcode-container");
+                container.innerHTML = "";
+                const targetUrl = (urlText || window.location.href).trim();
+                if (typeof QRCode !== "undefined") {
+                    qrInstance = new QRCode(container, {
+                        text: targetUrl,
+                        width: 180,
+                        height: 180,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            }
+
+            document.getElementById("btn-update-qr").addEventListener("click", function () {
+                const urlVal = document.getElementById("qr-url-input").value.trim();
+                if (urlVal) {
+                    renderQRCode(urlVal);
+                    showAdminToast("QR Code atualizado com sucesso.", false);
+                }
+            });
+
+            document.getElementById("btn-print-qr").addEventListener("click", function () {
+                window.print();
+            });
+
+            // =========================================================================
+            // 8. TABELA DE REGISTROS E EXPORTAÇÃO CSV DA SEMANA
+            // =========================================================================
+            const filterRecordsDate = document.getElementById("filter-records-date");
+            filterRecordsDate.addEventListener("change", renderRecordsTable);
+
+            function renderRecordsTable() {
+                const tbody = document.getElementById("attendance-records-tbody");
+                const mobileList = document.getElementById("attendance-records-mobile");
+                const countBadge = document.getElementById("records-count-badge");
+                const filterVal = filterRecordsDate.value;
+                const allRecords = loadRecords();
+
+                const filtered = filterVal === "ALL"
+                    ? allRecords
+                    : allRecords.filter(function (r) { return r.data === filterVal; });
+
+                countBadge.textContent = `${filtered.length} registro${filtered.length === 1 ? "" : "s"}`;
+                tbody.innerHTML = "";
+                if (mobileList) mobileList.innerHTML = "";
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="py-8 px-4 text-center text-slate-400 text-sm">
+                                Nenhum registro de presença encontrado para o filtro selecionado.
+                            </td>
+                        </tr>
+                    `;
+                    if (mobileList) {
+                        mobileList.innerHTML = `
+                            <div class="py-6 px-4 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                                Nenhum registro de presença encontrado para o filtro selecionado.
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+
+                filtered.slice().reverse().forEach(function (rec) {
+                    // Linha desktop (>= sm)
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900">${rec.ra}</td>
+                        <td class="py-3 px-4 font-mono text-slate-700">${rec.data}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-indigo-700">${rec.codigo}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-slate-500">${rec.horario}</td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // Card mobile (< sm)
+                    if (mobileList) {
+                        const card = document.createElement("div");
+                        card.className = "p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs";
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-mono font-bold text-sm text-slate-900">RA: ${rec.ra}</span>
+                                <span class="font-mono font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">${rec.data}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 text-slate-500 pt-1">
+                                <span class="font-mono text-indigo-700 font-semibold">${rec.codigo}</span>
+                                <span class="font-mono">${rec.horario}</span>
+                            </div>
+                        `;
+                        mobileList.appendChild(card);
+                    }
+                });
+            }
+
+            document.getElementById("btn-export-csv").addEventListener("click", function () {
+                const records = loadRecords();
+                if (records.length === 0) {
+                    showAdminToast("Não há registros salvos para exportar no momento.", true);
+                    return;
+                }
+
+                const headers = ["RA", "Data", "Codigo_Validacao", "Horario"];
+                const csvRows = [headers.join(";")];
+
+                records.forEach(function (rec) {
+                    const row = [
+                        `"${rec.ra}"`,
+                        `"${rec.data}"`,
+                        `"${rec.codigo}"`,
+                        `"${rec.horario}"`
+                    ];
+                    csvRows.push(row.join(";"));
+                });
+
+                const csvContent = "\uFEFF" + csvRows.join("\r\n");
+                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "frequencia_semana_23_a_27_11_2026.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                showAdminToast(`Arquivo CSV exportado com ${records.length} registro(s)!`, false);
+            });
+
+            const btnClearRecords = document.getElementById("btn-clear-records");
+            btnClearRecords.addEventListener("click", function () {
+                if (!clearConfirmPending) {
+                    clearConfirmPending = true;
+                    this.textContent = "Confirmar Exclusão?";
+                    this.classList.remove("bg-red-50", "text-red-700");
+                    this.classList.add("bg-red-600", "text-white");
+                    setTimeout(() => {
+                        clearConfirmPending = false;
+                        this.textContent = "Limpar Lista";
+                        this.classList.remove("bg-red-600", "text-white");
+                        this.classList.add("bg-red-50", "text-red-700");
+                    }, 3500);
+                } else {
+                    clearConfirmPending = false;
+                    saveRecords([]);
+                    renderRecordsTable();
+                    this.textContent = "Limpar Lista";
+                    this.classList.remove("bg-red-600", "text-white");
+                    this.classList.add("bg-red-50", "text-red-700");
+                    showAdminToast("Todos os registros locais foram apagados.", false);
+                }
+            });
+
+            refreshDateState();
+        })();
+    </script>
+</body>
+</html>
